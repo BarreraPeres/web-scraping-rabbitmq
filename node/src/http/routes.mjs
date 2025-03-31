@@ -14,7 +14,7 @@ function Routes(app) {
         res.status(200).json({ ok: true });
     });
 
-    app.get("/", (_, res) => {
+    app.get("/prices", (_, res) => {
         res.status(200).json({ ok: true })
     })
 }

@@ -1,14 +1,14 @@
+import Core from "../core.mjs";
 import BaseModule from "./BaseModule.mjs";
 
 class PriceModule extends BaseModule {
-
     async create({ product_id, price }) {
         this.validate({
             product_id: "string",
-            price: "string",
+            price: "number",
         }, { product_id, price });
-
-        const product = await this.core.product.findyById(product_id)
+        const core = new Core()
+        const product = await core.product.findById(product_id)
 
         price = await this.knex('prices')
             .insert({
@@ -22,27 +22,22 @@ class PriceModule extends BaseModule {
     }
 
     async findLast({ productId }) {
-        console.log("oi", productId)
         this.validate({
             productId: "string"
         }, { productId })
-        console.log("salve o baguio ta aqui no pricer")
-        const price = await this.knex("prices")
+
+        const prices = await this.knex("prices")
             .where({
                 product_id: productId,
-                utc_created_on: -1
             })
-            .first() || null
+            .orderBy(
+                "utc_created_on", "desc"
+            )
+            .first()
 
-        console.log("price", price)
+        const lastPrice = prices.price || 0
 
-        // if (!price) {
-        //     throw new Error(`price not found by ${productId}`)
-        // }
-
-        const message = !price ? true : false
-
-        return { price, message }
+        return lastPrice
 
     }
 

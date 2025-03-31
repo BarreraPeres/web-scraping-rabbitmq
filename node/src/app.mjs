@@ -30,13 +30,6 @@ function allowCrossOrigin(req, res, next) {
 
 app.use(allowCrossOrigin);
 
-// app.get('/api/products/monitored', (req, res) => {
-//     res.json({
-//         products: [
-//             { id: '1', name: 'Example Product', currentPrice: 99.99, targetPrice: 89.99 }
-//         ]
-//     });
-// });
 
 Routes(app)
 

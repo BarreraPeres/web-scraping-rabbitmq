@@ -2,12 +2,10 @@ import BaseModule from "./BaseModule.mjs";
 
 import axios from "axios";
 import jsdom from "jsdom"
-import Core from "../core.mjs";
 const { JSDOM } = jsdom;
 
 class ProductModule extends BaseModule {
     async findTitleAndPriceByUrl(url) {
-        console.log(`📥 Processando URL: ${url}`);
 
         const { data } = await axios.get(url, {
             headers: { "User-Agent": "Mozilla/5.0" }
@@ -33,8 +31,6 @@ class ProductModule extends BaseModule {
         }
         price = parseFloat(price);
 
-        console.log(`📈 Price of ${title} UP R$${price}`);
-
         return { title, price }
 
     }
@@ -47,23 +43,33 @@ class ProductModule extends BaseModule {
                 url
             })
             .first()
-        console.log("findbyProduct", product)
+
+        return product
+    }
+    async findById(id) {
+        this.validate({
+            id: "string"
+        }, { id })
+        const product = await this.knex("products")
+            .where({
+                id
+            })
+            .first()
+
         return product
     }
 
-    async save({ url, name, price }) {
+    async create({ url, name, price }) {
         this.validate({
             url: "string",
             name: "string",
             price: "number"
         }, { url, name, price });
 
-        const ctx = new Core()
         let product;
         const UrlAlreadyCreated = await this.findByProductByUrl(url)
 
         if (UrlAlreadyCreated) {
-            console.log("UrlAlreadyCreated", UrlAlreadyCreated)
             product = UrlAlreadyCreated
         } else {
             product = await this.knex('products')
@@ -73,11 +79,6 @@ class ProductModule extends BaseModule {
                 })
                 .returning('*');
         }
-
-        await ctx.price.create({
-            product_id: product.id,
-            price
-        })
 
         if (!product) {
             throw new Error("Unknow error while insert prodcut!");

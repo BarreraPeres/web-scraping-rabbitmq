@@ -8,6 +8,7 @@ class RabbitModule extends BaseModule {
         this.queueName = 'monitor_prices';
         this.connection = null;
         this.channel = null;
+        this.count = 0
     }
     async connect() {
         try {
@@ -38,6 +39,9 @@ class RabbitModule extends BaseModule {
     }
 
     async consumeQueue() {
+        if (!this.channel) {
+            console.error("Channel not initialized")
+        }
         try {
             console.log('🟢 Aguardando mensagens...');
             this.channel.consume(this.queueName, async (msg) => {
@@ -46,28 +50,53 @@ class RabbitModule extends BaseModule {
                 console.log(`📬 URL recebida: ${url}`);
                 const core = new Core()
 
-                // Perform web scraping
                 const { title, price } = await core.product.findTitleAndPriceByUrl(url);
-                const product = await core.product.save({ url: url, name: title, price })
+                const product = await core.product.create({ url: url, name: title, price })
 
-                console.log("procut", product)
+                let lastPrice = await core.price.findLast({ productId: product.id });
+                if (!lastPrice) {
+                    lastPrice = await core.price.create({
+                        product_id: product.id,
+                        price
+                    })
 
-                const { message, currentPrice } = await core.price.findLast({ productId: product.id });
+                }
 
+                while (this.count <= 0) {
+                    let message
 
-                console.log(message, currentPrice)
-                // if (!lastPrice) {
-                //     console.log(`📈 Preço aumentou de ${lastPrice} para R$${price}`);
-                //     // await sendEmail(price, lastPrice, url);
-                // } else if (lastPrice && price > lastPrice) {
-                //     console.log(`O preço desse produto será observado, atual está ${price}`)
-                // } else {
-                //     console.log(`Ultimo preço ${lastPrice} e preço atual ${price}`)
-                // }
+                    lastPrice = lastPrice
+                    if (!lastPrice) {
+                        message = `O preço desse produto será observado, atual está ${price}`
+                    } else if (lastPrice > price) {
+                        message = `Preço aumentou de ${lastPrice} para R$${price}`
+                    } else if (lastPrice === price) {
+                        message = `O preço atual está ${price}`
+                    } else {
+                        message = `Preço ABAIXOu de ${lastPrice} para ${price} `
+                    }
+
+                    this.count++;
+                }
+
+                //     // sendEmail(
+                //     //     user.email,
+                //     //     "Atualização De hoje",
+                //     //     "monitor_prices",
+                //     //     {
+                //     //         price,
+                //     //         message,
+                //     //         user,
+                //     //         product,
+                //     //         title
+                //     //     }
+                //     // )
+
+                this.channel.ack(msg);
 
             });
         } catch (error) {
-            console.error('Erro ao consumir mensagens:', error);
+            console.error('Error when consuming messages:', error);
             this.channel.nack(msg, false, true);
         }
     }
@@ -76,9 +105,9 @@ class RabbitModule extends BaseModule {
         try {
             await this.channel.close();
             await this.connection.close();
-            console.log('🚪 Conexão RabbitMQ fechada!');
+            console.log('🚪 RabbitMQ closed!');
         } catch (error) {
-            console.error('Erro ao fechar conexão RabbitMQ:', error);
+            console.error('Error closing RabbitMQ', error);
         }
     }
 }
