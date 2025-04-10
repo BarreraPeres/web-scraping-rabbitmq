@@ -4,11 +4,13 @@ import Routes from './http/routes.mjs'
 import { env } from './env/env.mjs'
 import Core from './core/core.mjs'
 import RabbitProducerModule from './core/module/Rabbit-Producer.mjs'
+import { errorHandler } from './error-handler.mjs'
 
 const app = express()
 
 app.use(cookieParser(env.JWT_SECRET))
 app.use(express.json())
+app.use(errorHandler)
 
 app.use((req, _, next) => {
     const core = new Core();
