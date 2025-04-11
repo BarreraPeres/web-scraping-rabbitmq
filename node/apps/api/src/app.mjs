@@ -1,12 +1,14 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
-import Routes from './http/routes.mjs'
 import { env } from './env/env.mjs'
 import Core from './core/core.mjs'
 import RabbitProducerModule from './core/module/Rabbit-Producer.mjs'
 import { errorHandler } from './error-handler.mjs'
+import makeAuthEndpoint from './http/auth.mjs'
+import makeEndpoint from './http/routes.mjs'
 
 const app = express()
+const rabbitProducer = new RabbitProducerModule()
 
 app.use(cookieParser(env.JWT_SECRET))
 app.use(express.json())
@@ -32,8 +34,9 @@ function allowCrossOrigin(req, res, next) {
 }
 
 app.use(allowCrossOrigin);
-Routes(app)
-const rabbitProducer = new RabbitProducerModule()
+
+makeAuthEndpoint(app)
+makeEndpoint(app)
 
 setTimeout(async () => {
     await rabbitProducer.connect("monitor_prices")
