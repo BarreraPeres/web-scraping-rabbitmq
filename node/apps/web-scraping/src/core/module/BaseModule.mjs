@@ -1,10 +1,12 @@
 import { ZodError, z } from "zod";
+import Db from "../db.mjs";
 
 
 class BaseModule {
     constructor() {
+        this.db = new Db();
+        this.knex = this.db.knex;
     }
-
     validate(schema, obj) {
         let errors;
         const zodSchema = {};
