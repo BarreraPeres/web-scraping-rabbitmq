@@ -44,7 +44,6 @@ class AccountModule extends BaseModule {
             email,
             password
         })
-        console.log("user", user)
 
         if (!user) {
             throw new Error(`Error on creating user ${name, email, password}`)

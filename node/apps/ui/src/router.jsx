@@ -6,6 +6,7 @@ import ErrorPage from "./pages/public/error";
 import SignUpPage from "./pages/public/signup";
 import PlayGroundElementLayout from "./layouts/playground";
 import PlayGroundHome from "./pages/playground/home";
+import LoginPage from "./pages/public/login";
 
 const Router = createBrowserRouter([
     {
@@ -15,6 +16,7 @@ const Router = createBrowserRouter([
         children: [
             { path: "/", element: <HomePublicPage /> },
             { path: "/signup", element: <SignUpPage /> },
+            { path: "/login", element: <LoginPage /> },
         ]
     },
     {
