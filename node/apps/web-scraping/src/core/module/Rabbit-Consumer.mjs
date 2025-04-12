@@ -58,25 +58,28 @@ class RabbitConsumer extends BaseModule {
             console.info(`Consumer ... ${this.queueName}`);
             this.channel.consume(this.queueName, async (msg) => {
                 if (!msg) return;
-                const url = msg.content.toString();
+                const data = JSON.parse(msg.content.toString())
                 const core = new Core()
 
-                const { title, price } = await core.product.findTitleAndPriceByUrl(url);
-                const product = await core.product.create({ url: url, name: title, price })
+                const { title, price } = await core.product.findTitleAndPriceByUrl(data.url);
+                const product = await core.product.create({ url: data.url, name: title, price })
 
                 let lastPrice = await core.price.findLast({ productId: product.id });
-                if (!lastPrice) {
-                    lastPrice = await core.price.create({
+
+                const message = await writer(lastPrice, price)
+
+                if (lastPrice === 0) {
+                    const priceCreated = await core.price.create({
                         product_id: product.id,
                         price
                     })
+                    lastPrice = priceCreated?.price
                 }
-                const message = await writer(lastPrice, price)
 
                 if (!lastPrice) {
                     return this.channel.cancel(msg.fields.consumerTag)
                 }
-                console.info(`${message}`)
+                console.info(`${data.email} - ${message}`)
 
                 this.channel?.ack(msg)
             });

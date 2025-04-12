@@ -72,12 +72,13 @@ class ProductModule extends BaseModule {
         if (UrlAlreadyCreated) {
             product = UrlAlreadyCreated
         } else {
-            product = await this.knex('products')
+            const products = await this.knex('products')
                 .insert({
                     url,
                     name
                 })
                 .returning('*');
+            product = products[0]
         }
 
         if (!product) {

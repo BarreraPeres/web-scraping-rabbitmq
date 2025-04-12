@@ -6,15 +6,24 @@ const router = express.Router()
 
 async function handleSenderToQueue(req, res) {
     const schemaParams = z.object({
-        url: z.string()
+        url: z.string(),
+        email: z.string(),
     })
-    const { url } = schemaParams.parse(req.query)
+    const { url, email } = schemaParams.parse(req.query)
+    try {
+        console.log("url", url)
+        const data = {
+            url,
+            email
+        }
+        await req.core.rabbitProducer.connect("web_scraping")
+        await req.core.rabbitProducer.channel.assertQueue("web_scraping")
+        await req.core.rabbitProducer.sender("web_scraping", JSON.stringify(data))
 
-    await req.core.rabbitProducer.connect("web_scraping")
-    await req.core.rabbitProducer.channel.assertQueue("web_scraping")
-    await req.core.rabbitProducer.sender("web_scraping", url)
-
-    res.status(200).json({ message: "Your product to be observed" })
+        res.status(200).json({ message: "Your product to be observed" })
+    } catch (e) {
+        throw e
+    }
 }
 
 router.get("/prices", handler(handleSenderToQueue))

@@ -35,7 +35,10 @@ class PriceModule extends BaseModule {
             )
             .first()
 
-        const lastPrice = prices.price || 0
+        let lastPrice = prices?.price
+        if (!lastPrice) {
+            lastPrice = 0
+        }
 
         return lastPrice
 
