@@ -3,6 +3,7 @@ import BaseModule from "./BaseModule.mjs";
 
 import bcryptjs from "bcryptjs"
 import { InvalidCredencialsError } from "../errors/invalid-credentials-error.mjs";
+import { EmailAlreadyExists } from "../errors/email-already-exists.mjs";
 
 const { compare } = bcryptjs
 
@@ -35,7 +36,7 @@ class AccountModule extends BaseModule {
 
         const userAlreadyExists = await core.user.findByEmailOrNull({ email })
         if (userAlreadyExists) {
-            throw new InvalidCredencialsError()
+            throw new EmailAlreadyExists()
         }
 
         const user = await core.user.create({

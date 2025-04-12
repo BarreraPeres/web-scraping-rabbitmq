@@ -1,5 +1,6 @@
 import amqp from 'amqplib';
 import BaseModule from './BaseModule.mjs';
+import { env } from '../../env/env.mjs';
 
 class RabbitProducerModule extends BaseModule {
     constructor() {
@@ -15,7 +16,7 @@ class RabbitProducerModule extends BaseModule {
                 this.channel = await this.connection.createChannel();
                 await this.channel.assertQueue(queue);
 
-                console.log(`🚀 Server and Producer is running ${queue}`);
+                console.log(`🚀 Server and Producer is running ${queue} on ${env.API_PORT}`);
                 resolve()
             } catch (error) {
                 console.error(`Erro ao conectar ao RabbitMQ: ${queue}`, error);

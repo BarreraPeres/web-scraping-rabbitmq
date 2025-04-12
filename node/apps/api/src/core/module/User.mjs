@@ -4,6 +4,7 @@ import { ValidationError } from "../errors/validation-error.mjs"
 
 import bcryptjs from "bcryptjs"
 import BaseModule from "./BaseModule.mjs"
+import { ResourceNotFound } from "../errors/resource-not-found.mjs"
 const { compare, hash } = bcryptjs
 
 class UserModule extends BaseModule {
@@ -56,11 +57,11 @@ class UserModule extends BaseModule {
         return user || null
     }
     async findById(id) {
-        this.validate({ id: "string" }, id)
+        this.validate({ id: "string" }, { id })
 
         const user = await this.knex("users").where({ id }).first();
         if (!user) {
-            throw new InvalidCredencialsError()
+            throw new ResourceNotFound()
         }
         return user
     }

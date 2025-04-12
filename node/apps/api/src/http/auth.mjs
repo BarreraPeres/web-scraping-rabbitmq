@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 
 import handler from "../handler.mjs";
 import trySetUserMiddleware from "../middleware/try-set-user.mjs";
+import { env } from "../env/env.mjs";
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ function setCookie(req, res, user) {
         user_id: user.id,
     }
     const token = jwt.sign(tokenData, env.JWT_SECRET)
-
+    console.log("token", token)
 
     res.cookie("token", token, {
         domain: getRequestDomain(req),
@@ -42,12 +43,6 @@ async function handleGetIndex(req, res) {
             user
         })
     } catch (e) {
-        if (e instanceof ResourceNotFound) {
-            return res.status(404).json({
-                ok: false,
-                message: e.message
-            })
-        }
         throw e
     }
 
@@ -62,7 +57,7 @@ async function handlePostSignUp(req, res) {
     const { name, password, email } = schemaParams.parse(req.body)
 
     try {
-        const user = await req.ctx.account.create({
+        const user = await req.core.account.signup({
             email,
             name,
             password
@@ -76,12 +71,6 @@ async function handlePostSignUp(req, res) {
         })
 
     } catch (e) {
-        logger(e)
-        if (e instanceof ResourceNotFound) {
-            return res.status(404).json({
-                message: e.message
-            })
-        }
         throw e
     }
 
@@ -106,19 +95,6 @@ async function handlePostLogin(req, res) {
             email: user.email,
         })
     } catch (e) {
-        logger(e)
-        if (e instanceof InvalidCredencialsError) {
-            return res.status(401).json({
-                ok: false,
-                message: e.message
-            })
-        }
-        if (e instanceof ResourceNotFound) {
-            return res.status(404).json({
-                ok: false,
-                message: e.message
-            })
-        }
         throw e
     }
 }

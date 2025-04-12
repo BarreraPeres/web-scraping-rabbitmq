@@ -12,7 +12,6 @@ const rabbitProducer = new RabbitProducerModule()
 
 app.use(cookieParser(env.JWT_SECRET))
 app.use(express.json())
-app.use(errorHandler)
 
 app.use((req, _, next) => {
     const core = new Core();
@@ -37,6 +36,7 @@ app.use(allowCrossOrigin);
 
 makeAuthEndpoint(app)
 makeEndpoint(app)
+app.use(errorHandler)
 
 setTimeout(async () => {
     await rabbitProducer.connect("monitor_prices")

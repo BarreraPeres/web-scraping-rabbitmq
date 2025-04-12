@@ -20,12 +20,6 @@ class BaseModule {
             const res = z.object(zodSchema).parse(obj);
             errors = res.errors;
         } catch (ex) {
-            if (ex instanceof ZodError) {
-                throw new Error(
-                    ex.errors.map((e) => `Field=${e.path} - expected=${e.expected} - received=${e.received}`)
-                        .join('\n')
-                );
-            }
             throw ex
         }
     }
