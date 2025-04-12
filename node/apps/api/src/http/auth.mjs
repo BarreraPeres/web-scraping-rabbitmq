@@ -39,10 +39,10 @@ async function handleGetIndex(req, res) {
 
         return res.status(200).json({
             ok: true,
-            store,
             user
         })
     } catch (e) {
+        console.error("e", e)
         throw e
     }
 
@@ -83,7 +83,7 @@ async function handlePostLogin(req, res) {
         })
         const { password, email } = schemaParams.parse(req.body)
 
-        const user = await req.ctx.user.login(
+        const user = await req.core.account.login(
             email,
             password
         )
@@ -99,9 +99,31 @@ async function handlePostLogin(req, res) {
     }
 }
 
+async function handleGetLogout(req, res) {
+    try {
+        res.cookie("token", null, {
+            expiress: new Date(),
+            signed: true,
+            domain: getRequestDomain(req)
+        })
+
+        res.clearCookie("token")
+
+        return res.status(200).json({
+            ok: true
+        })
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
+
+}
+
 router.post("/signup", handler(handlePostSignUp));
 
 router.post("/login", handler(handlePostLogin));
+
+router.get("/logout", trySetUserMiddleware, handler(handleGetLogout))
 
 router.get("/", trySetUserMiddleware, handler(handleGetIndex))
 

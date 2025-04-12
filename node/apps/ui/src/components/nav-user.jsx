@@ -30,10 +30,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useUser } from "@/hooks"
+import fetchApi from "@/fetch.api"
+import { useNavigate } from "react-router-dom"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user } = useUser()
+  const navigate = useNavigate()
 
   const nameUpperCase = user.name
     .split(" ")
@@ -99,7 +102,19 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => {
+              try {
+                await fetchApi(
+                  "/auth/logout",
+                  "GET"
+                )
+                navigate("/login")
+
+              } catch (e) {
+                alert(e.message || e)
+              }
+
+            }}>
               <LogOut />
               Sair
             </DropdownMenuItem>
