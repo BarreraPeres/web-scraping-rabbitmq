@@ -11,16 +11,29 @@ async function handleSenderToQueue(req, res) {
     })
     const { url, email } = schemaParams.parse(req.query)
     try {
-        console.log("url", url)
+
         const data = {
             url,
             email
         }
+        const correlationId = crypto.randomUUID()
+
         await req.core.rabbitProducer.connect("web_scraping")
         await req.core.rabbitProducer.channel.assertQueue("web_scraping")
-        await req.core.rabbitProducer.sender("web_scraping", JSON.stringify(data))
 
-        res.status(200).json({ message: "Your product to be observed" })
+        await req.core.rabbitProducer.sender("web_scraping", JSON.stringify(data), correlationId)
+
+        await req.core.rabbitProducer.channel.consume("rpc", (msg) => {
+
+            if (msg && correlationId === msg.properties.correlationId) {
+
+                const data = JSON.parse(msg.content.toString())
+
+                res.status(200).json({ data })
+
+                req.core.rabbitProducer.channel.cancel(msg.fields.consumerTag)
+            }
+        })
     } catch (e) {
         throw e
     }

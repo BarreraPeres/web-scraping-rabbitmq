@@ -7,6 +7,7 @@ class RabbitProducerModule extends BaseModule {
         super();
         this.connection = null;
         this.channel = null;
+        this.channelRPC = null
     }
     async connect(queue) {
         return new Promise(async (resolve, reject) => {
@@ -25,16 +26,38 @@ class RabbitProducerModule extends BaseModule {
         })
     }
 
-    async sender(queue, msg) {
-        if (!this.channel) {
-            console.error("Channel not initialized")
-        }
-        try {
-            this.channel.sendToQueue(
-                queue,
-                Buffer.from(msg)
-            );
+    async createNewChannel(queue) {
+        this.channelRPC = await this.connection.createChannel()
+        await this.channel.assertQueue(queue)
 
+        console.log(`new channel RPC created ${queue}`)
+    }
+
+    async sender(queue, msg, correlationId) {
+        console.log("correlationId", correlationId)
+        try {
+            if (correlationId) {
+                await this.createNewChannel("rpc")
+                if (!this.channelRPC) {
+                    console.error("New Channel not initialized")
+                }
+                this.channel.sendToQueue(
+                    queue,
+                    Buffer.from(msg),
+                    {
+                        replyTo: "rpc",
+                        correlationId: correlationId
+                    }
+                );
+            } else {
+                if (!this.channel) {
+                    console.error("Channel not initialized")
+                }
+                this.channel.sendToQueue(
+                    queue,
+                    Buffer.from(msg)
+                );
+            }
             console.log(`✅ msg sending to ${queue} - ${msg}`);
         } catch (error) {
             console.error(`Error to sending to queue ${queue} - ${msg}`, error);

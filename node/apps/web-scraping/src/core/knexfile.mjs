@@ -17,7 +17,7 @@ const config = {
         database: env.PSQL_DATABASE,
     },
     migrations: {
-        directory: "../migrations",
+        directory: "../../../db/migrations",
         loadExtensions: ['.mjs'],
     }
 };

@@ -79,7 +79,19 @@ class RabbitConsumer extends BaseModule {
                 if (!lastPrice) {
                     return this.channel.cancel(msg.fields.consumerTag)
                 }
-                console.info(`${data.email} - ${message}`)
+
+                const response = {
+                    message,
+                    product
+                }
+
+                this.channel.sendToQueue(msg.properties.replyTo,
+                    Buffer.from(JSON.stringify(response)),
+                    {
+                        correlationId: msg.properties.correlationId
+                    }
+                )
+                console.info(`${data.email} - ${msg.properties.replyTo}`)
 
                 this.channel?.ack(msg)
             });
